@@ -7,8 +7,7 @@
 
 import Foundation
 
-
-enum Error: String{
+enum ServiceError: String{
     case ParseError = "❌❌Error Parsing Data❌❌"
     case NotFoundError = "❌❌Error Data Not Found ❌❌"
     case NotStoredError = "❌❌ Object Not Stored ❌❌"

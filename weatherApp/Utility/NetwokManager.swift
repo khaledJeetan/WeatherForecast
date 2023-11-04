@@ -8,77 +8,27 @@
 
 import Foundation
 
-class NetwokManager{
+protocol NetwokManager{
+    func request<T: Codable>(session: URLSession, url: URL, type: T.Type)async throws -> T?
+}
+
+final class NetwokManagerImp: NetwokManager{
     
-    private var weatherURL : URL!
-    private let session = URLSession.shared
-    static let manager = NetwokManager()
-    private var currentTask: URLSessionDataTask?
+    static let shared = NetwokManagerImp()
+
+    private init(){}
     
-    private init(){
+    
+    func request<T: Codable>(session: URLSession = .shared, url: URL, type: T.Type)async throws -> T?{
+                
+        let (data, response) = try await session.data(from: url)
         
-        
-    }
-    
-    
-    func fetchWeatherData(lon:Double,lat:Double, completion: @escaping (Weather?)-> (Void) ) {
-        let url = URLManager.getWeatherURL(latitude: lat, longitude: lon)
-        let task = session.dataTask(with: url) {
-            data, response, error in
-            if let error = error {
-                print(Error.NetworkError)
-                completion(nil)
-                return
-            }
-            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else{
-                print(Error.NetworkError)
-                completion(nil)
-                return
-            }
-            
-            if let data = data{
-                do{
-                   let weather = try JSONDecoder().decode(Weather.self, from: data)
-                    completion(weather)
-                }catch{
-                    print(Error.ParseError)
-                    completion(nil)
-                }
-                    }
-                }
-        
-        task.resume()
-    }
-    
-    func fetchLocationData(city: String, completion: @escaping (Location?)->() ){        
-        let url = URLManager.getLocationURL(city: city)
-        self.currentTask = self.session.dataTask(with: url){
-            (data, response, error) in
-            if let error = error {
-                print(Error.NetworkError)
-                print(error)
-                completion(nil)
-                return
-            }
-            
-            if let data = data {
-                do{
-                    let location = try JSONDecoder().decode(Location.self, from: data)
-                    completion(location)
-                }catch{
-                    print(Error.ParseError)
-                    completion(nil)
-                }
-            }
+        guard let response = response as? HTTPURLResponse, (200...300) ~= response.statusCode else{
+            let statusCode = (response as! HTTPURLResponse).statusCode
+            throw ServiceError.network(statusCode: statusCode)
         }
-        
-        currentTask!.resume()
-        
+        let res = try JSONDecoder().decode(type, from: data)
+        return res;
     }
-    
-    func cancelCurrentRequest(){
-        currentTask?.cancel()
-    }
-    
     
 }

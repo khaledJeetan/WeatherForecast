@@ -7,24 +7,26 @@
 
 import Foundation
 
+
 class WeatherViewModel: NSObject{
-    
-    var weather: Weather?
+    // i needed to add [and inherit NSObject] to make @objc work otherwise error will occure
+    // if i want to set all members of a class @objc dynamic i can write @objcMember
+    @objc dynamic var weather: Weather?
     var selectedLocation: City?
     var currentWeather: CurrentWeather?{
         weather?.current_weather
     }
     
     var isLocationSelected:Bool{
-        isLocationSet()
+        self.selectedLocation != nil
     }
     
     var currentTemparature:String{
-        Int(currentWeather!.temperature).description
+            return Int(currentWeather!.temperature).description
     }
     
-    var  currentStatusMinMax: String{
-        "\(WeatherCode(rawValue: currentWeather!.weathercode)!)  \((currentWeather!.is_day != 0) ? Constants.Icons.day.rawValue : Constants.Icons.night.rawValue)"
+    var  currentStatusDayLight: String{
+          return "\(WeatherCode(rawValue: currentWeather!.weathercode)!)  \((currentWeather!.is_day != 0) ? Constants.Icons.day.rawValue : Constants.Icons.night.rawValue)"
     }
     
     var cityLocation:String{
@@ -32,34 +34,38 @@ class WeatherViewModel: NSObject{
     }
     
     var image:String{
-        currentWeather?.is_day == 1 ?  getBackgroundImage(code: currentWeather!.weathercode) : Constants.Background.night.rawValue
+        currentWeather!.is_day == 1 ?  getBackgroundImage(code: currentWeather!.weathercode) : Constants.Background.night.rawValue
     }
 
+    let hourlyCount = Constants.hourlyForecast
     
+    
+    private let netWorkManager: NetwokManager!
+    
+    init(networkManager: NetwokManager = NetwokManagerImp.shared){
+        self.netWorkManager = networkManager
+    }
+    
+    
+    // this function can be enhanced more
     func loadData(){
-        let manager = NetwokManager.manager
-        manager.fetchWeatherData(lon: selectedLocation!.longitude, lat: selectedLocation!.latitude ){
-            weather in
-            DispatchQueue.main.async {
-                guard let weather = weather else {
-//                    self.showAlertMessage()
-//                    StorageManager.manager.clearStorage()
-                    return
-                }
-                self.weather = weather
+        Task{
+            // url manager should be abstracted
+            let url = URLManager.getWeatherURL(latitude: selectedLocation!.latitude, longitude: selectedLocation!.longitude)
+            do{
+                self.weather = try await netWorkManager.request(session: .shared, stringURL: url, type: Weather.self)
+            } catch ServiceError.network{
+                // Show Alert
+            } catch ServiceError.invalidurl{
+                // show Alert
+            } catch{
+                // show Alert
             }
         }
     }
     
-   
-        func isLocationSet() -> Bool{
-    //        let location = StorageManager.manager.getSelectedLocation()
-            guard self.selectedLocation != nil else{
-                print(Error.NilError)
-                return false
-            }
-    //        self.selectedLocation = location
-            return true
-        }
-    
 }
+
+
+// add view State
+// enum ==> loading, fetching, finished

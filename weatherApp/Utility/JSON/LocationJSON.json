@@ -1,0 +1,36 @@
+{
+  "results": [
+    {
+      "id": 282615,
+      "name": "Nablus",
+      "latitude": 32.22111,
+      "longitude": 35.25444,
+      "elevation": 569,
+      "feature_code": "PPLA2",
+      "country_code": "PS",
+      "admin1_id": 285153,
+      "admin2_id": 7870555,
+      "timezone": "Asia/Hebron",
+      "population": 130326,
+      "admin1": "West Bank",
+      "admin2": "Nablus"
+    },
+    {
+      "id": 10181456,
+      "name": "Nāblus",
+      "latitude": 36.32816,
+      "longitude": 43.08085,
+      "elevation": 274,
+      "feature_code": "PPLX",
+      "country_code": "IQ",
+      "admin1_id": 92877,
+      "admin2_id": 9166649,
+      "timezone": "Asia/Baghdad",
+      "country_id": 99237,
+      "country": "Iraq",
+      "admin1": "Nineveh",
+      "admin2": "Mosul"
+    }
+  ],
+  "generationtime_ms": 0.77700615
+}

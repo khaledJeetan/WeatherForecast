@@ -9,23 +9,31 @@ import Foundation
 
 class SearchViewModel: NSObject{
     
-    var locations: Location?
-    var searchCity: String = ""
+    var selectedCity: City?
+    @objc dynamic var cities:[City]?
+    private let networkManager: NetwokManager!
+    private var currentTask: Task<(), Never>?
     
-    var cites:[City]?{
-        locations?.results
+    // we did that so that we provide a mock network manager that doesn't fetch data from a server
+     init(networkManager: NetwokManager = NetwokManagerImp.shared ) {
+        self.networkManager = networkManager
     }
     
-    
-    func findLocations(){
-        let manager = NetwokManager.manager
-            manager.cancelCurrentRequest()
-            manager.fetchLocationData(city: searchCity){
-                location in
-                guard let location = location else{
-                    return
-                }
-                self.locations = location
+    func findLocations(search: String){
+        
+        currentTask?.cancel()
+        currentTask = Task{
+            let url = URLManager.getLocationURL(city: search)
+            do{
+                let locations = try await networkManager.request(session: .shared, stringURL: url, type: Location.self)
+                self.cities = locations?.results
+            } catch ServiceError.invalidurl{
+                
+            } catch ServiceError.network{
+                
+            } catch{
+                
+            }
         }
     }
 }
